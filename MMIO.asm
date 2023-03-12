@@ -8,26 +8,22 @@ printInt:
 		ecall             # Print the character
 		ret               # Return from the function
 printString:
-		# Save the starting address of the string to t0
-		mv	t0, a0
+		
+		mv	t0, a0 # Save the starting address of the string to t0
 
 	print_loop:
-		# Load the current character into a1
-		lb	a1, (t0)
-
-		# If the current character is the null terminator, return
-		beqz a1, return_print
-
-		# Otherwise, print the character to the display and increment the string pointer
-		lw	t1, DDR  # Load address of the display
-		sb	a1, (t1)
+		
+		lb a1, (t0) # Load the current character into a1
+		beqz a1, return_print # If the current character is the null terminator, return
+		lw t1, DDR  # Otherwise, print the character to the display and increment the string pointer,Load address of the display
+		sb a1, (t1)
 		li a7, 11		# service number to print char
 		ecall
 		
 		addi t0, t0, 1
 
 		# Repeat the loop for the next character
-		j print_loop
+		j print_loop # Repeat the loop for the next character
 
 	return_print:
 		ret
@@ -39,6 +35,7 @@ printChar:
 		li a7, 11		# service number to print char
 		ecall
 		ret
+		
 readChar:
 		lw	t0, KBSR
 		lw	a0, (t0)
@@ -47,46 +44,36 @@ readChar:
 		lw	t0, KBDR
 		lw	a0, (t0)
 		
-		# li a7, 12 		# load user char y/n
-		# ecall
+		
 		ret
 		
 readString:
-		# Load address of the input buffer into a0
-		mv a0, t0
 
-		# Set buffer size to 80
-		li t1, 80
-		li t4, 10
-
-	read_loop:
-		# Check if buffer size has been exceeded
-		beqz t1, return_read
-
-		# Read a character from the keyboard
-		lw t2, KBSR
-		lw t3, (t2)
-		beqz t3, read_loop
-		lw t2, KBDR
-		lb a1, (t2)
-
-		# Check for end of string (newline or null terminator)
-		beqz a1, return_read
-		beq a1, t4, return_read
-
-		# Otherwise, store the character in the buffer and increment the pointer
-		sb a1, (a0)
-		addi a0, a0, 1
-		addi t1, t1, -1
-
-		# Repeat the loop for the next character
-		j read_loop
-
-	return_read:
-		# Null-terminate the string and return its starting address
-		sb zero, (a0)
-		ret
+	addi sp, sp, -16
+	sw ra, 12(sp)
+	sw s0, 8(sp)
+	mv s0, a0
+	li t3, 10
+	li t4, '\0'
 	
+	here:
+		
+		jal readChar
+		beq t3, a0, endhere
+		mv t1, a0
+		sb t1, 0(s0)
+		addi s0, s0, 1
+	
+		b here
+
+	endhere:
+		mv t1, t4
+		sb t1, 0(s0)
+		lw ra, 12(sp)
+		lw s0, 8(sp)
+		addi sp, sp, 16
+		ret
+
 			
 readInt:
 		lw	t0, KBSR   # Load the KBSR to t0
@@ -117,7 +104,7 @@ exitProgram:
 		
 		
 .data
-svra:   .word -1
+
 KBSR:	.word	0xffff0000
 KBDR:	.word	0xffff0004
 DSR:	.word	0xffff0008
