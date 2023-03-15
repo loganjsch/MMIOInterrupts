@@ -8,35 +8,59 @@ printInt:
 		ecall             # Print the character
 		ret               # Return from the function
 printString:
-		
-		mv	t0, a0 # Save the starting address of the string to t0
 
-	print_loop:
 		
-		lb a1, (t0) # Load the current character into a1
-		beqz a1, return_print # If the current character is the null terminator, return
-		lw t1, DDR  # Otherwise, print the character to the display and increment the string pointer,Load address of the display
-		sb a1, (t1)
-		li a7, 11		# service number to print char
-		ecall
+	addi sp, sp, -16
+	sw ra, 12(sp)
+	sw s0, 8(sp)
+	sw t1, 4(sp)
+	sw t4, 0(sp)
+	mv s0, a0
+	li t4, '\0'
+	
+	here_2:
+		lb t1, 0(s0)
+		mv a0, t1
+		beq t4, a0, endhere_2
+		jal printChar
+		addi s0, s0, 1
+	
+		b here_2
+
+	endhere_2:
 		
-		addi t0, t0, 1
-
-		# Repeat the loop for the next character
-		j print_loop # Repeat the loop for the next character
-
-	return_print:
+		lw ra, 12(sp)
+		lw s0, 8(sp)
+		lw t1, 4(sp)
+		lw t4, 0(sp)
+		addi sp, sp, 16
 		ret
 		
+		
+
 	
 printChar:
+
+		addi sp, sp, -16
+		sw ra, 12(sp)
+		sw t0, 8(sp)
+		
 		lw	t0, DDR
 		sb	a0, (t0)
-		li a7, 11		# service number to print char
-		ecall
+		
+		lw ra, 12(sp)
+		lw t0, 8(sp)
+		addi sp, sp, 16
+		#li a7, 11		# service number to print char
+		#ecall
 		ret
 		
 readChar:
+
+		addi sp, sp, -16
+		sw ra, 12(sp)
+		sw t0, 8(sp)
+		
 		lw	t0, KBSR
 		lw	a0, (t0)
 		beq	zero, a0, readChar
@@ -44,6 +68,9 @@ readChar:
 		lw	t0, KBDR
 		lw	a0, (t0)
 		
+		lw ra, 12(sp)
+		lw t0, 8(sp)
+		addi sp, sp, 16
 		
 		ret
 		
