@@ -15,6 +15,7 @@ printString:
 	sw s0, 8(sp)
 	sw t1, 4(sp)
 	sw t4, 0(sp)
+	
 	mv s0, a0
 	li t4, '\0'
 	
@@ -44,15 +45,21 @@ printChar:
 		addi sp, sp, -16
 		sw ra, 12(sp)
 		sw t0, 8(sp)
+		sw t1, 4(sp)
 		
-		lw	t0, DDR
-		sb	a0, (t0)
+		#lw t1, DSR
+		#lw t0, 0(t1)
+		#andi t0, t0, 1
+		#beq t0, zero, printChar
+		
+		lw	t1, DDR
+		sw	a0, 0(t1)
+		
 		
 		lw ra, 12(sp)
 		lw t0, 8(sp)
+		lw t1, 4(sp)
 		addi sp, sp, 16
-		#li a7, 11		# service number to print char
-		#ecall
 		ret
 		
 readChar:
@@ -60,25 +67,33 @@ readChar:
 		addi sp, sp, -16
 		sw ra, 12(sp)
 		sw t0, 8(sp)
+		sw t1, 4(sp)
 		
-		lw	t0, KBSR
+		lw t0, KBSR
 		lw	a0, (t0)
-		beq	zero, a0, readChar
+		#lw t1, 0(t0)
+		#andi t1, t1, 1
+		beq zero, a0, readChar
 		
-		lw	t0, KBDR
-		lw	a0, (t0)
+		lw t0, KBDR
+		
+		lw a0, (t0)
 		
 		lw ra, 12(sp)
 		lw t0, 8(sp)
+		lw t1, 4(sp)
 		addi sp, sp, 16
 		
 		ret
 		
 readString:
 
-	addi sp, sp, -16
-	sw ra, 12(sp)
-	sw s0, 8(sp)
+	addi sp, sp, -32
+	sw ra, 28(sp)
+	sw s0, 24(sp)
+	sw a7, 20(sp)
+	sw t1, 16(sp)
+	sw t4, 12(sp)
 	mv s0, a0
 	li t3, 10
 	li t4, '\0'
@@ -96,9 +111,13 @@ readString:
 	endhere:
 		mv t1, t4
 		sb t1, 0(s0)
-		lw ra, 12(sp)
-		lw s0, 8(sp)
-		addi sp, sp, 16
+		
+		lw ra, 28(sp)
+		lw s0, 24(sp)
+		lw a7, 20(sp)
+		lw t1, 16(sp)
+		lw t4, 12(sp)
+		addi sp, sp, 32
 		ret
 
 			

@@ -7,16 +7,19 @@ main:
 	
 body:
 	mv s1, a0
-	li s0, 5
-	jal counter
+	#li s0, 5
 	
-	li a7, 1
-	ecall
+	#la s2, count
+	#lw s3, 0(s2)
+
 	
-	bgt a0, s0, end_body
-	mv a0, s1
+	#beq s3, s0, end_body
+	
 	jal printChar
 	b body
-end_body:
-	jal countReset
-	b main
+	
+#end_body:
+#	Ela s4, count
+#	li s5, 0
+#	sw s5, 0(s4)
+#	b main

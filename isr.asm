@@ -1,9 +1,14 @@
-.globl isr, counter, countReset
+.globl isr, count
 
 isr:
-	addi sp, sp, -16
-	sw ra, 12(sp)
-	sw t0, 8(sp)
+	addi sp, sp, -32
+	sw ra, 28(sp)
+	sw t0, 24(sp)
+	sw t1, 20(sp)
+	sw t2, 16(sp)
+	sw t3, 12(sp)
+	sw t4, 8(sp)
+	sw t5, 4(sp)
 	
 
 	la t0, handler
@@ -25,37 +30,70 @@ isr:
 	la a0, msg
 	jal printString
 	
-	lw ra, 12(sp)
-	addi sp, sp, 16
+	lw ra, 28(sp)
+	lw t0, 24(sp)
+	lw t1, 20(sp)
+	lw t2, 16(sp)
+	lw t3, 12(sp)
+	lw t4, 8(sp)
+	lw t5, 4(sp)
+	
+	addi sp, sp, 32
 	ret
 
 handler:
-	addi sp, sp, -32
-	sw ra, 28(sp)
-	sw a7, 24(sp)
-	sw s0, 20(sp)
-	sw s1, 16(sp)
-	sw s2, 12(sp)
-	sw s3, 8(sp)
+	addi sp, sp, -64
+	sw ra, 60(sp)
+	sw a7, 56(sp)
+	sw s0, 52(sp)
+	sw s1, 48(sp)
+	sw s2, 44(sp)
+	sw s3, 40(sp)
+	sw t0, 36(sp)
+	sw t1, 32(sp)
+	sw t2, 28(sp)
+	sw t3, 24(sp)
+	sw t4, 20(sp)
+	sw t5, 16(sp)
+	sw t6, 12(sp)
 	
 	
 	
-	csrrs s1, uepc, zero
-	addi s1, s1, 4
-	csrrw zero, uepc, s1
+	#csrrs s1, uepc, zero
+	#addi s1, s1, 4
+	#csrrw zero, uepc, s1
 	
 	jal readChar
 	mv s0, a0
 	
 	la a0, pressed
 	jal printString
+	
 	mv a0, s0
 	jal printChar
+	
 	li a0, '\n'
 	jal printChar
 	
-	la s2, count
-	lw s3, 0(s2)
+	if:
+		li t5, 4
+		la s2, count
+		lw s3, 0(s2)
+		#addi s3, s3, 1
+		#la s2, count
+		#sw s3, 0(s2)
+		
+		blt s3, t5, end_if
+		
+		la t6, main
+		csrrw zero, 65, t6
+		la t5, count
+		li t6, 0
+		sw t6, 0(t5)
+		uret
+		
+	end_if:
+	
 	addi s3, s3, 1
 	la s2, count
 	sw s3, 0(s2)
@@ -63,49 +101,22 @@ handler:
 	mv a0, s0
 	
 	
-	lw ra, 28(sp)
-	lw a7, 24(sp)
-	lw s0, 20(sp)
-	lw s1, 16(sp)
-	lw s2, 12(sp)
-	lw s3, 8(sp)
-	addi sp, sp, 32
+	lw ra, 60(sp)
+	lw a7, 56(sp)
+	lw s0, 52(sp)
+	lw s1, 48(sp)
+	lw s2, 44(sp)
+	lw s3, 40(sp)
+	lw t0, 36(sp)
+	lw t1, 32(sp)
+	lw t2, 28(sp)
+	lw t3, 24(sp)
+	lw t4, 20(sp)
+	lw t5, 16(sp)
+	lw t6, 12(sp)
+	addi sp, sp, 64
 	uret
 
-counter:
-	addi sp, sp, -16
-	sw ra, 12(sp)
-	sw t1, 8(sp)
-	sw t2, 4(sp)
-	
-	la t1, count
-	lw t2, 0(t1)
-	
-	addi t2, t2, 1
-	mv a0, t2
-	
-	lw ra, 12(sp)
-	lw t1, 8(sp)
-	lw t2, 4(sp)
-	addi sp, sp, 16
-	ret
-	
-countReset:
-
-	addi sp, sp, -16
-	sw ra, 12(sp)
-	sw t1, 8(sp)
-	sw t2, 4(sp)
-	
-	la t1, count
-	li t2, 0
-	sw t2, 0(t1)
-	
-	lw ra, 12(sp)
-	lw t1, 8(sp)
-	lw t2, 4(sp)
-	addi sp, sp, 16
-	ret
 	
 
 
@@ -113,10 +124,12 @@ countReset:
 
 .data
 
-msg: .string "\nInitializing Interrupts\n"
-pressed: .string "\nkey pressed is: "
+msg: .string "\nIn\n"
+pressed: .string "\nkey: "
 RCR: .word 0xffff0000
 DDR:	.word	0xffff000c
 count: .word 0
 
+# "\nInitializing Interrupts\n"
+# "\nkey pressed is: "
 
