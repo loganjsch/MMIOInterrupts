@@ -10,114 +10,86 @@ printInt:
 printString:
 
 		
-	addi sp, sp, -16
+	addi sp, sp, -16 # save ra to stack
 	sw ra, 12(sp)
-	sw s0, 8(sp)
-	sw t1, 4(sp)
-	sw t4, 0(sp)
 	
-	mv s0, a0
+	mv t0, a0 # save adress to t0
 	li t4, '\0'
 	
 	here_2:
-		lb t1, 0(s0)
+		lb t1, 0(t0) # load one byte away from the adress
 		mv a0, t1
-		beq t4, a0, endhere_2
+		beq t4, a0, endhere_2 # if char is equal to '\0' then branch
 		jal printChar
-		addi s0, s0, 1
+		addi t0, t0, 1 # increment adress
 	
 		b here_2
 
 	endhere_2:
 		
-		lw ra, 12(sp)
-		lw s0, 8(sp)
-		lw t1, 4(sp)
-		lw t4, 0(sp)
-		addi sp, sp, 16
+		lw ra, 12(sp) # restore ra
+		addi sp, sp, 16 # pop stack
 		ret
 		
-		
-
 	
 printChar:
 
-		addi sp, sp, -16
+		addi sp, sp, -16 # save ra to stack
 		sw ra, 12(sp)
-		sw t0, 8(sp)
-		sw t1, 4(sp)
 		
-		#lw t1, DSR
-		#lw t0, 0(t1)
-		#andi t0, t0, 1
-		#beq t0, zero, printChar
-		
-		lw	t1, DDR
-		sw	a0, 0(t1)
+		lw	t1, DDR # get DDR value
+		sw	a0, 0(t1) # write char to display
 		
 		
-		lw ra, 12(sp)
-		lw t0, 8(sp)
-		lw t1, 4(sp)
-		addi sp, sp, 16
+		lw ra, 12(sp) # restore ra 
+
+		addi sp, sp, 16 # pop stack
 		ret
 		
 readChar:
 
-		addi sp, sp, -16
+		addi sp, sp, -16 # save ra to stack
 		sw ra, 12(sp)
-		sw t0, 8(sp)
-		sw t1, 4(sp)
+
 		
-		lw t0, KBSR
-		lw	a0, (t0)
-		#lw t1, 0(t0)
-		#andi t1, t1, 1
-		beq zero, a0, readChar
+		lw t0, KBSR # get KBSR address
+		lw	a0, (t0) # get value at KSBR
+
+		beq zero, a0, readChar # see if zero or not
 		
-		lw t0, KBDR
+		lw t0, KBDR # get KBDR address
 		
-		lw a0, (t0)
+		lw a0, (t0) # get the char
 		
-		lw ra, 12(sp)
-		lw t0, 8(sp)
-		lw t1, 4(sp)
-		addi sp, sp, 16
+		lw ra, 12(sp) # restore ra
+
+		addi sp, sp, 16 # pop stack
 		
 		ret
 		
 readString:
 
-	addi sp, sp, -32
-	sw ra, 28(sp)
-	sw s0, 24(sp)
-	sw a7, 20(sp)
-	sw t1, 16(sp)
-	sw t4, 12(sp)
-	mv s0, a0
-	li t3, 10
+	addi sp, sp, -16 # save ra on the stack
+	sw ra, 12(sp)
+	
+	#mv s0, a0
+	li t3, 10 
 	li t4, '\0'
 	
 	here:
 		
 		jal readChar
-		beq t3, a0, endhere
-		mv t1, a0
-		sb t1, 0(s0)
-		addi s0, s0, 1
-	
+		beq t3, a0, endhere # branch if there is an enter key
+		mv t1, a0 
+		sb t1, 0(t0) # store byte zero away from t0
+		addi t0, t0, 1 #increment address
 		b here
 
 	endhere:
-		mv t1, t4
-		sb t1, 0(s0)
-		
-		lw ra, 28(sp)
-		lw s0, 24(sp)
-		lw a7, 20(sp)
-		lw t1, 16(sp)
-		lw t4, 12(sp)
-		addi sp, sp, 32
+		mv t1, t4 # move null to t1
+		sb t1, 0(t0) # put in the null char 
+		lw ra, 12(sp) # restore ra
+		addi sp, sp, 16 # pop stack
 		ret
 
 			
@@ -139,9 +111,7 @@ readInt:
 		addi a0, a0, -48   # Subtract the ASCII code for '0'
 
 		ret   # Return from the function with the integer value in a0
-		#li a7, 5 		# service number to read int to a0
-		#ecall			# get user input 
-		#ret
+
 exitProgram:
 
 		li a7, 10		# loads service number for exiting 
